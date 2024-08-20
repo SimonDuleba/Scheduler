@@ -1,10 +1,10 @@
 export const appointments = [
     {
-      title: '',//enter title of the appointment
-      startDate: new Date(),//enter start date and time
-      endDate: new Date(),//enter end date and time
       id: 0,
-      location: '',//enter location
-    }, 
+      title: 'Meeting',//enter title of the appointment
+      startDate: '2024-08-20T09:00:00',//enter start date and time
+      endDate: '2024-08-20T10:00:00',//enter end date and time
+      location: 'Online',//enter location
+    },
   ];
   
