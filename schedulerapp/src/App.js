@@ -1,5 +1,3 @@
-/* eslint-disable max-classes-per-file */
-/* eslint-disable react/no-unused-state */
 import * as React from 'react';
 import { styled } from '@mui/material/styles';
 import Paper from '@mui/material/Paper';
@@ -7,6 +5,7 @@ import { ViewState, EditingState } from '@devexpress/dx-react-scheduler';
 import {
   Scheduler,
   Toolbar,
+  DayView,
   MonthView,
   WeekView,
   ViewSwitcher,
@@ -434,6 +433,10 @@ export default class Demo extends React.PureComponent {
             onEditingAppointmentChange={this.onEditingAppointmentChange}
             onAddedAppointmentChange={this.onAddedAppointmentChange}
           />
+          <DayView
+            startDayHour={startDayHour}
+            endDayHour={endDayHour}
+          />
           <WeekView
             startDayHour={startDayHour}
             endDayHour={endDayHour}
@@ -459,7 +462,7 @@ export default class Demo extends React.PureComponent {
 
         <Dialog
           open={confirmationVisible}
-          onClose={this.cancelDelete}
+          onClose={this.toggleConfirmationVisible}
         >
           <DialogTitle>
             Delete Appointment
