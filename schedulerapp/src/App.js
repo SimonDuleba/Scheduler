@@ -231,7 +231,7 @@ export default class Schedule extends React.PureComponent {
     super(props);
     this.state = {
       data: appointments,
-      currentDate: new Date(),
+      currentDate: new Date,
       confirmationVisible: false,
       editingFormVisible: false,
       deletedAppointmentId: undefined,
