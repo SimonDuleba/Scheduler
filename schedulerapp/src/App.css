@@ -1,42 +1,51 @@
-.App {
-  text-align: center;
+/* App.css */
+
+.App-content {
+  padding: 16px;
+  padding-top: 0;
 }
 
 .App-header {
-  background-color: #282c34;
-  min-height: 100vh;
+  overflow: hidden;
+  padding-top: 4px;
+}
+
+.App-closeButton {
+  float: right;
+}
+
+.App-picker {
+  margin-right: 16px;
+  width: 50%;
+}
+
+.App-wrapper {
   display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  color: white;
+  justify-content: space-between;
+  padding: 8px 0;
 }
 
-.calendar {
-  display: inline-block;
-  border: 1px solid #ccc;
-  margin-top: 20px;
+.App-buttonGroup {
+  display: flex;
+  justify-content: flex-end;
+  padding: 0 16px;
 }
 
-.calendar-header {
-  display: grid;
-  grid-template-columns: repeat(7, 1fr);
-  background-color: #2e46f9;
+.App-button {
+  margin-left: 16px;
 }
 
-.calendar-day-header {
-  padding: 10px;
-  border-bottom: 1px solid #ddd;
+.App-textField {
+  width: 100%;
 }
 
-.calendar-body {
-  display: grid;
-  grid-template-columns: repeat(7, 1fr);
+.App-icon {
+  margin: 16px 0;
+  margin-right: 16px;
 }
 
-.calendar-day {
-  padding: 20px;
-  border: 1px solid #ddd;
-  height: 80px;
-  box-sizing: border-box;
+.App-addButton {
+  position: absolute;
+  bottom: 24px;
+  right: 32px;
 }
