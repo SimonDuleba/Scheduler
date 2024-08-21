@@ -39,29 +39,37 @@ import Create from '@mui/icons-material/Create';
 
 import { appointments } from './appointments.js';
 
-// StyledFab is removed as it will be styled via CSS
 
+
+// React component for a basic Appointment Form Container.
 class AppointmentFormContainerBasic extends React.PureComponent {
   constructor(props) {
     super(props);
 
+    // Initialize state with appointmentChanges to track changes made to the appointment.
     this.state = {
       appointmentChanges: {},
     };
 
+    // Retrieve the appointment data passed as a prop.
     this.getAppointmentData = () => {
       const { appointmentData } = this.props;
       return appointmentData;
     };
+
+    // Retrieve the current appointment changes from the state.
     this.getAppointmentChanges = () => {
       const { appointmentChanges } = this.state;
       return appointmentChanges;
     };
 
+    // Bind methods to ensure proper `this` context.
     this.changeAppointment = this.changeAppointment.bind(this);
     this.commitAppointment = this.commitAppointment.bind(this);
   }
 
+  // Method to handle changes in the appointment fields.
+  // It updates the state with the new changes.
   changeAppointment({ field, changes }) {
     const nextChanges = {
       ...this.getAppointmentChanges(),
@@ -72,6 +80,8 @@ class AppointmentFormContainerBasic extends React.PureComponent {
     });
   }
 
+  // Method to commit the changes to the appointment.
+  // It handles adding, editing, or deleting an appointment based on the `type` parameter.
   commitAppointment(type) {
     const { commitChanges } = this.props;
     const appointment = {
@@ -85,32 +95,37 @@ class AppointmentFormContainerBasic extends React.PureComponent {
     } else {
       commitChanges({ [type]: appointment });
     }
+    // Reset the state after committing changes.
     this.setState({
       appointmentChanges: {},
     });
   }
 
+  // Render method to display the appointment form.
   render() {
     const {
-      visible,
-      visibleChange,
-      appointmentData,
-      cancelAppointment,
-      target,
-      onHide,
+      visible,            // Determines if the form should be visible.
+      visibleChange,      // Callback to toggle form visibility.
+      appointmentData,    // The current appointment data being edited.
+      cancelAppointment,  // Callback to cancel appointment editing.
+      target,             // Target element for positioning the form.
+      onHide,             // Callback when the form should be hidden.
     } = this.props;
     const { appointmentChanges } = this.state;
 
+    // Combine appointment data with any changes made.
     const displayAppointmentData = {
       ...appointmentData,
       ...appointmentChanges,
     };
 
+    // Determine if this is a new appointment.
     const isNewAppointment = appointmentData.id === undefined;
     const applyChanges = isNewAppointment
       ? () => this.commitAppointment('added')
       : () => this.commitAppointment('changed');
 
+    // Properties for the text editors in the form.
     const textEditorProps = field => ({
       variant: 'outlined',
       onChange: ({ target: change }) => this.changeAppointment({
@@ -121,6 +136,7 @@ class AppointmentFormContainerBasic extends React.PureComponent {
       className: 'Schedule-textField',  // Updated class name
     });
 
+    // Properties for the date pickers in the form.
     const pickerEditorProps = field => ({
       value: displayAppointmentData[field],
       onChange: date => this.changeAppointment({
@@ -130,8 +146,12 @@ class AppointmentFormContainerBasic extends React.PureComponent {
       inputFormat: 'DD/MM/YYYY HH:mm',
       onError: () => null,
     });
+
+    // Specific properties for the start and end date pickers.
     const startDatePickerProps = pickerEditorProps('startDate');
     const endDatePickerProps = pickerEditorProps('endDate');
+
+    // Cancel changes made to the appointment and reset the form.
     const cancelChanges = () => {
       this.setState({
         appointmentChanges: {},
@@ -226,23 +246,25 @@ class AppointmentFormContainerBasic extends React.PureComponent {
   }
 }
 
+// React component to manage the entire schedule, including appointments.
 export default class Schedule extends React.PureComponent {
   constructor(props) {
     super(props);
     this.state = {
-      data: appointments,
-      currentDate: new Date,
-      confirmationVisible: false,
-      editingFormVisible: false,
-      deletedAppointmentId: undefined,
-      editingAppointment: undefined,
-      previousAppointment: undefined,
-      addedAppointment: {},
-      startDayHour: 9,
-      endDayHour: 19,
-      isNewAppointment: false,
+      data: appointments,             // List of all appointments.
+      currentDate: new Date(),        // Current date in the scheduler.
+      confirmationVisible: false,     // Visibility of the delete confirmation dialog.
+      editingFormVisible: false,      // Visibility of the appointment form.
+      deletedAppointmentId: undefined, // ID of the appointment to be deleted.
+      editingAppointment: undefined,  // The appointment being edited.
+      previousAppointment: undefined, // The previous appointment before editing.
+      addedAppointment: {},           // New appointment data to be added.
+      startDayHour: 9,                // Start hour of the scheduler day.
+      endDayHour: 19,                 // End hour of the scheduler day.
+      isNewAppointment: false,        // Whether a new appointment is being created.
     };
 
+    // Bind methods to ensure proper `this` context.
     this.toggleConfirmationVisible = this.toggleConfirmationVisible.bind(this);
     this.commitDeletedAppointment = this.commitDeletedAppointment.bind(this);
     this.toggleEditingFormVisibility = this.toggleEditingFormVisibility.bind(this);
@@ -250,6 +272,8 @@ export default class Schedule extends React.PureComponent {
     this.commitChanges = this.commitChanges.bind(this);
     this.onEditingAppointmentChange = this.onEditingAppointmentChange.bind(this);
     this.onAddedAppointmentChange = this.onAddedAppointmentChange.bind(this);
+
+    // Initialize appointment form with connected props.
     this.appointmentForm = connectProps(AppointmentFormContainerBasic, () => {
       const {
         editingFormVisible,
@@ -260,9 +284,12 @@ export default class Schedule extends React.PureComponent {
         previousAppointment,
       } = this.state;
 
+      // Find the current appointment being edited or the newly added appointment.
       const currentAppointment = data
         .filter(appointment => editingAppointment && appointment.id === editingAppointment.id)[0]
         || addedAppointment;
+
+      // Cancel the current appointment editing, revert to previous state if it's a new appointment.
       const cancelAppointment = () => {
         if (isNewAppointment) {
           this.setState({
@@ -283,14 +310,17 @@ export default class Schedule extends React.PureComponent {
     });
   }
 
+  // Update the appointment form component whenever the component updates.
   componentDidUpdate() {
     this.appointmentForm.update();
   }
 
+  // Method to handle changes to the currently edited appointment.
   onEditingAppointmentChange(editingAppointment) {
     this.setState({ editingAppointment });
   }
 
+  // Method to handle changes when a new appointment is added.
   onAddedAppointmentChange(addedAppointment) {
     this.setState({ addedAppointment });
     const { editingAppointment } = this.state;
@@ -302,10 +332,12 @@ export default class Schedule extends React.PureComponent {
     this.setState({ editingAppointment: undefined, isNewAppointment: true });
   }
 
+  // Method to set the ID of the appointment to be deleted.
   setDeletedAppointmentId(id) {
     this.setState({ deletedAppointmentId: id });
   }
 
+  // Toggle the visibility of the appointment editing form.
   toggleEditingFormVisibility() {
     const { editingFormVisible } = this.state;
     this.setState({
@@ -313,11 +345,13 @@ export default class Schedule extends React.PureComponent {
     });
   }
 
+  // Toggle the visibility of the delete confirmation dialog.
   toggleConfirmationVisible() {
     const { confirmationVisible } = this.state;
     this.setState({ confirmationVisible: !confirmationVisible });
   }
 
+  // Method to commit the deletion of an appointment.
   commitDeletedAppointment() {
     this.setState((state) => {
       const { data, deletedAppointmentId } = state;
@@ -328,6 +362,7 @@ export default class Schedule extends React.PureComponent {
     this.toggleConfirmationVisible();
   }
 
+  // Method to commit changes (add, update, delete) to the appointments.
   commitChanges({ added, changed, deleted }) {
     this.setState((state) => {
       let { data } = state;
@@ -347,6 +382,7 @@ export default class Schedule extends React.PureComponent {
     });
   }
 
+  // Render method to display the scheduler and related components.
   render() {
     const {
       currentDate,
@@ -438,3 +474,4 @@ export default class Schedule extends React.PureComponent {
     );
   }
 }
+
