@@ -36,9 +36,11 @@ import Notes from '@mui/icons-material/Notes';
 import Close from '@mui/icons-material/Close';
 import CalendarToday from '@mui/icons-material/CalendarToday';
 import Create from '@mui/icons-material/Create';
-
 import { appointments } from './appointments.js';
-
+import { initializeApp } from 'firebase/app';
+import { db } from './firebase';
+import { collection, addDoc, updateDoc, doc, deleteDoc, writeBatch } from 'firebase/firestore';
+import { query, getDocs } from 'firebase/firestore';
 
 
 // React component for a basic Appointment Form Container.
@@ -251,7 +253,7 @@ export default class Schedule extends React.PureComponent {
   constructor(props) {
     super(props);
     this.state = {
-      data: appointments,             // List of all appointments.
+      data: [],             // List of all appointments.
       currentDate: new Date(),        // Current date in the scheduler.
       confirmationVisible: false,     // Visibility of the delete confirmation dialog.
       editingFormVisible: false,      // Visibility of the appointment form.
@@ -273,6 +275,8 @@ export default class Schedule extends React.PureComponent {
     this.onEditingAppointmentChange = this.onEditingAppointmentChange.bind(this);
     this.onAddedAppointmentChange = this.onAddedAppointmentChange.bind(this);
 
+
+    
     // Initialize appointment form with connected props.
     this.appointmentForm = connectProps(AppointmentFormContainerBasic, () => {
       const {
@@ -308,6 +312,17 @@ export default class Schedule extends React.PureComponent {
         cancelAppointment,
       };
     });
+  }
+
+  async componentDidMount() {
+    try {
+      const q = query(collection(db, 'appointments'));
+      const querySnapshot = await getDocs(q);
+      const appointments = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      this.setState({ data: appointments });
+    } catch (error) {
+      console.error("Error fetching appointments: ", error);
+    }
   }
 
   // Update the appointment form component whenever the component updates.
@@ -352,35 +367,74 @@ export default class Schedule extends React.PureComponent {
   }
 
   // Method to commit the deletion of an appointment.
-  commitDeletedAppointment() {
-    this.setState((state) => {
-      const { data, deletedAppointmentId } = state;
-      const nextData = data.filter(appointment => appointment.id !== deletedAppointmentId);
-
-      return { data: nextData, deletedAppointmentId: null };
-    });
-    this.toggleConfirmationVisible();
-  }
+    commitDeletedAppointment = async () => {
+    const { deletedAppointmentId } = this.state;
+    if (deletedAppointmentId) {
+      try {
+        await this.commitChanges({ deleted: [deletedAppointmentId] }); // Ensure deleted is an array
+      } catch (error) {
+        console.error("Error committing delete changes: ", error);
+      }
+      this.setState({ deletedAppointmentId: null });
+      this.toggleConfirmationVisible(); // Hide confirmation dialog
+    }
+  };
+  
+  
 
   // Method to commit changes (add, update, delete) to the appointments.
-  commitChanges({ added, changed, deleted }) {
-    this.setState((state) => {
-      let { data } = state;
+  commitChanges = async ({ added, changed, deleted }) => {
+    try {
+      const batch = writeBatch(db); // Initialize a batch for atomic operations
+  
+      // Prepare new data for the local state update
+      let newData = [...this.state.data];
+  
       if (added) {
-        const startingAddedId = data.length > 0 ? data[data.length - 1].id + 1 : 0;
-        data = [...data, { id: startingAddedId, ...added }];
+        const { id, ...newAppointment } = added;
+        const sanitizedNewAppointment = Object.fromEntries(
+          Object.entries(newAppointment).filter(([_, value]) => value !== undefined)
+        );
+        await addDoc(collection(db, 'appointments'), sanitizedNewAppointment);
+        // Update local state
+        newData = [...newData, { id: (await getDocs(query(collection(db, 'appointments')))).docs.at(-1).id, ...sanitizedNewAppointment }];
       }
+  
       if (changed) {
-        data = data.map(appointment => (
-          changed[appointment.id] ? { ...appointment, ...changed[appointment.id] } : appointment));
+        await Promise.all(Object.keys(changed).map(async (id) => {
+          const updatedAppointment = changed[id];
+          const sanitizedUpdatedAppointment = Object.fromEntries(
+            Object.entries(updatedAppointment).filter(([_, value]) => value !== undefined)
+          );
+          await updateDoc(doc(db, 'appointments', id), sanitizedUpdatedAppointment);
+          // Update local state
+          newData = newData.map(appointment => (appointment.id === id ? { ...appointment, ...sanitizedUpdatedAppointment } : appointment));
+        }));
       }
-      if (deleted !== undefined) {
-        this.setDeletedAppointmentId(deleted);
-        this.toggleConfirmationVisible();
+  
+      if (Array.isArray(deleted)) {
+        await Promise.all(deleted.map(async (id) => {
+          const appointmentRef = doc(db, 'appointments', id);
+          batch.delete(appointmentRef);
+          newData = newData.filter(appointment => appointment.id !== id);
+        }));
+        await batch.commit();
+      } else if (deleted) {
+        // Handle the case where deleted is a single ID (string)
+        const id = deleted;
+        const appointmentRef = doc(db, 'appointments', id);
+        batch.delete(appointmentRef);
+        newData = newData.filter(appointment => appointment.id !== id);
+        await batch.commit();
       }
-      return { data, addedAppointment: {} };
-    });
-  }
+  
+      this.setState({ data: newData });
+      console.log("Changes committed:", { added, changed, deleted });
+    } catch (error) {
+      console.error("Error updating Firestore: ", error);
+    }
+  };
+  
 
   // Render method to display the scheduler and related components.
   render() {
