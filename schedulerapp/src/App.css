@@ -1,51 +1,55 @@
 /* App.css */
 
-.App-content {
+.Schedule-content {
   padding: 16px;
   padding-top: 0;
 }
 
-.App-header {
+.Schedule-header {
   overflow: hidden;
   padding-top: 4px;
 }
 
-.App-closeButton {
+.Schedule-closeButton {
   float: right;
 }
 
-.App-picker {
+.Schedule-picker {
   margin-right: 16px;
   width: 50%;
 }
 
-.App-wrapper {
+.Schedule-wrapper {
   display: flex;
   justify-content: space-between;
-  padding: 8px 0;
+  align-items: center;
+  padding: 8px 8px;
 }
 
-.App-buttonGroup {
+.Schedule-buttonGroup {
   display: flex;
   justify-content: flex-end;
   padding: 0 16px;
 }
 
-.App-button {
-  margin-left: 16px;
+.Schedule-button {
+  margin-left: 30px;
 }
 
-.App-textField {
-  width: 100%;
+.Schedule-textField {
+  
+  width: 72%;
 }
 
-.App-icon {
+.Schedule-icon {
   margin: 16px 0;
   margin-right: 16px;
 }
 
-.App-addButton {
-  position: absolute;
-  bottom: 24px;
-  right: 32px;
+.Schedule-addButton {
+  position: fixed;
+  bottom: 20px;
+  left: 50%;        
+  transform: translateX(-50%);
+  
 }

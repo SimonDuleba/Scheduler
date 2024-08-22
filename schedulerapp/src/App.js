@@ -511,7 +511,7 @@ export default class Schedule extends React.PureComponent {
         </Dialog>
 
         <Fab
-          color="secondary"
+          color="primary"
           className="Schedule-addButton"  // Updated class name
           onClick={() => {
             this.setState({ editingFormVisible: true });
